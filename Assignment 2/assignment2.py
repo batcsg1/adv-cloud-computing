@@ -60,13 +60,6 @@ def create():
 
     '''Create a set of OpenStack resources.'''
     
-    # Define your OpenStack connection parameters (update with your values)
-    auth = {
-        'project_name': 'otago-polytechnic~1a8012',
-        'username': 'batcsg1@student.op.ac.nz"',
-        'password': 'AngerTranslation2',
-        'user_domain_name': 'Default',
-    }
 
     # ---------------------------------------------------------------
     # 1. Network + subnet
