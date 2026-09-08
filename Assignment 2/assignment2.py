@@ -57,6 +57,8 @@ The run, stop, destroy, and status functions are similarly defined.
 def create():
     # Connect to OpenStack
     conn = connect()
+    if conn is None:
+        return
 
     '''Create a set of OpenStack resources.'''
     
