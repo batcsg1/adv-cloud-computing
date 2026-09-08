@@ -261,7 +261,31 @@ def run():
 def stop():
     ''' Stop  a set of Openstack virtual machines if they are running.
     '''
-    pass
+    print('Executing the `stop` function')
+
+    conn = connect()
+    if conn is None:
+        return
+
+    for role in SERVER_ROLES:
+        server_name = f'{USERNAME}-{role}'
+        try:
+            server = conn.compute.find_server(server_name)
+            if server is None:
+                print(f'Error: server "{server_name}" does not exist')
+                continue
+
+            server = conn.compute.get_server(server.id)
+
+            if server.status == 'SHUTOFF':
+                print(f'{server.name} is already stopped')
+            else:
+                conn.compute.stop_server(server)
+                conn.compute.wait_for_server(server, status='SHUTOFF')
+                print(f'Stopped server: {server.name}')
+
+        except Exception as e:
+            print(f'Error stopping server {server_name}: {str(e)}')
 
 def destroy():
     ''' Tear down the set of Openstack resources produced by the create action
