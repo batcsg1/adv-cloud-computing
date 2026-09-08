@@ -29,9 +29,11 @@ def connect():
     auth = {
         'auth_url': os.environ.get('OS_AUTH_URL'),
         'project_name': os.environ.get('OS_PROJECT_NAME'),
+        'project_domain_name': os.environ.get('OS_PROJECT_DOMAIN_NAME', 'Default'),
         'username': os.environ.get('OS_USERNAME'),
         'password': os.environ.get('OS_PASSWORD'),
         'user_domain_name': os.environ.get('OS_USER_DOMAIN_NAME', 'Default'),
+        'region_name': os.environ.get('OS_REGION_NAME', 'nz-hlz-1'),
     }
  
     try:
@@ -55,13 +57,14 @@ The run, stop, destroy, and status functions are similarly defined.
 """
 
 def create():
+    '''Create a set of OpenStack resources.'''
+
+    print('Executing the `create` function')
+
     # Connect to OpenStack
     conn = connect()
     if conn is None:
         return
-
-    '''Create a set of OpenStack resources.'''
-    
 
     # ---------------------------------------------------------------
     # 1. Network + subnet
@@ -222,9 +225,7 @@ def create():
     except Exception as e:
         print(f'Error creating resources: {str(e)}')
 
-def create():
-    ''' Create a set of Openstack resources '''
-    pass
+
 
 def run():
     ''' Start  a set of Openstack virtual machines if they are not already running.
@@ -285,7 +286,7 @@ if __name__ == '__main__':
     it defaults to a lambda function that prints an error message."""
 
     action = operations.get(operation, lambda: print('{}: no such operation'.format(operation)))
-    
+  
     """Finally, this line calls the chosen function 
     (e.g., create(), run(), etc.) based on the user's input."""
     action()
