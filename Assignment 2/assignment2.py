@@ -26,8 +26,15 @@ SERVER_ROLES = ['web', 'app', 'db']
 def connect():
     '''Create a connection to the OpenStack environment.'''
  
-    # Import credentials from the .env file
+    # auth = {
+    #     'project_name': 'otago-polytechnic~1a8012',
+    #     'username': 'batcsg1@student.op.ac.nz',
+    #     'password': 'AngerTranslation2',
+    #     'user_domain_name': 'Default',
+    # }
+
     auth = {
+        'auth_url': os.environ.get('OS_AUTH_URL'),
         'project_name': os.environ.get('OS_PROJECT_NAME'),
         'username': os.environ.get('OS_USERNAME'),
         'password': os.environ.get('OS_PASSWORD'),
