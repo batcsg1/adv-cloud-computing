@@ -20,7 +20,7 @@ PUBLIC_NETWORK_NAME = 'public-net'
 SUBNET_CIDR = '192.168.50.0/24'
 IMAGE_NAME = 'ubuntu-minimal-22.04-x86_64'
 FLAVOR_NAME = 'c1.c1r1'
-SECURITY_GROUP = 'assignment2'
+SECURITY_GROUP = 'sb-security-group'
 SERVER_ROLES = ['web', 'app', 'db']
 
 def connect():
@@ -206,21 +206,23 @@ def create():
                 None,
             )
 
-            # Create the floating IP
-            if floating_ip is None:
-                floating_ip = conn.network.create_ip(
-                    floating_network_id=public_net.id
-                )
-                print(f'Created floating IP: {floating_ip.floating_ip_address}')
-            else:
-                print(f'Reusing unattached floating IP: {floating_ip.floating_ip_address}')
-
-            # Add the newly created floating IP to the web server
-            conn.compute.add_floating_ip_to_server(
-                web_server, floating_ip.floating_ip_address
+        # Create the floating IP
+        if floating_ip is None:
+            floating_ip = conn.network.create_ip(
+                floating_network_id=public_net.id
             )
+            print(f'Created floating IP: {floating_ip.floating_ip_address}')
+        else:
+            print(f'Reusing unattached floating IP: {floating_ip.floating_ip_address}')
 
-            print(f'Assigned floating IP {floating_ip.floating_ip_address} to {web_server.name}')
+        # Add the newly created floating IP to the web server
+        port = next(conn.network.ports(device_id=web_server.id), None)
+        if port is None:
+            raise Exception(f'No network port found for server {web_server.name}')
+
+        conn.network.update_ip(floating_ip, port_id=port.id)
+
+        print(f'Assigned floating IP {floating_ip.floating_ip_address} to {web_server.name}')
 
     except Exception as e:
         print(f'Error creating resources: {str(e)}')
@@ -240,7 +242,120 @@ def stop():
 def destroy():
     ''' Tear down the set of Openstack resources produced by the create action
     '''
-    pass
+    print('Executing the `destroy` function')
+
+    conn = connect()
+    if conn is None:
+        return
+
+    net_name = f'{USERNAME}-net'
+    subnet_name = f'{USERNAME}-subnet'
+    router_name = f'{USERNAME}-rtr'
+
+    try:
+        # ---------------------------------------------------------------
+        # 1. Capture the web server's floating IP address before we delete
+        #    the server (once the server is gone we lose the association).
+        # ---------------------------------------------------------------
+        web_server_name = f'{USERNAME}-web'
+        web_server = conn.compute.find_server(web_server_name)
+        floating_ip_address = None
+
+        if web_server is not None:
+            web_server = conn.compute.get_server(web_server.id)
+            for addrs in (web_server.addresses or {}).values():
+                for addr in addrs:
+                    if addr.get('OS-EXT-IPS:type') == 'floating':
+                        floating_ip_address = addr['addr']
+
+        # ---------------------------------------------------------------
+        # 2. Servers: web, app, db
+        # ---------------------------------------------------------------
+
+        # Delete the servers specified in the create() function
+        for role in SERVER_ROLES:
+            server_name = f'{USERNAME}-{role}'
+            server = conn.compute.find_server(server_name)
+            if server is None:
+                print(f'Server does not exist: {server_name}')
+                continue
+            conn.compute.delete_server(server, ignore_missing=True)
+            conn.compute.wait_for_delete(server)
+            print(f'Deleted server: {server_name}')
+
+        # ---------------------------------------------------------------
+        # 3. Floating IP 
+        # ---------------------------------------------------------------
+
+        # Delete the Floating IP
+        if floating_ip_address is not None:
+            floating_ip = next(
+                (ip for ip in conn.network.ips()
+                 if ip.floating_ip_address == floating_ip_address),
+                None,
+            )
+            if floating_ip is not None:
+                conn.network.delete_ip(floating_ip, ignore_missing=True)
+                print(f'Deleted floating IP: {floating_ip_address}')
+        else:
+            print('No floating IP to delete')
+
+        # ---------------------------------------------------------------
+        # 4. Router - detach interface and clear gateway before deleting
+        # ---------------------------------------------------------------
+        try:
+            router = conn.network.find_router(router_name)
+            if router is None:
+                print(f'Router does not exist: {router_name}')
+                return
+
+            subnet = conn.network.find_subnet(subnet_name)
+            router_ports = conn.network.ports(device_id=router.id) if subnet is not None else []
+            subnet_attached = subnet is not None and any(
+                fixed_ip['subnet_id'] == subnet.id
+                for port in router_ports
+                for fixed_ip in port.fixed_ips
+            )
+
+            if subnet_attached:
+                conn.network.remove_interface_from_router(router, subnet_id=subnet.id)
+                print(f'Removed subnet {subnet_name} interface from router {router_name}')
+
+            if router.external_gateway_info:
+                conn.network.update_router(router, external_gateway_info=None)
+                print(f'Cleared external gateway on router {router_name}')
+
+            conn.network.delete_router(router, ignore_missing=True)
+            print(f'Deleted router: {router_name}')
+        except Exception as e:
+            print(f'Error deleting router {router_name}: {str(e)}')
+
+        # ---------------------------------------------------------------
+        # 5. Subnet
+        # ---------------------------------------------------------------
+        subnet = conn.network.find_subnet(subnet_name)
+
+        # Delete the subnet
+        if subnet is not None:
+            conn.network.delete_subnet(subnet, ignore_missing=True)
+            print(f'Deleted subnet: {subnet_name}')
+        else:
+            print(f'Subnet does not exist: {subnet_name}')
+
+        # ---------------------------------------------------------------
+        # 6. Network
+        # ---------------------------------------------------------------
+
+        # Delete the netwrok
+        network = conn.network.find_network(net_name)
+        if network is not None:
+            conn.network.delete_network(network, ignore_missing=True)
+            print(f'Deleted network: {net_name}')
+        else:
+            print(f'Network does not exist: {net_name}')
+
+    except Exception as e:
+        print(f'Error destroying resources: {str(e)}')
 
 def status():
     ''' Print a status report on the OpenStack virtual machines created by the create action.
