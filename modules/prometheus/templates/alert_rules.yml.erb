@@ -1,15 +1,15 @@
 groups:
-  - name: beowulf_alerts
+  - name: batcsg1_alerts
     rules:
-      - alert: BeowulfNodeDown
-        expr: up{job="beowulf"} == 0
+      - alert: Batcsg1NodeDown
+        expr: up{cluster="batcsg1"} == 0
         for: 2m
         labels:
           severity: critical
-          cluster: beowulf
+          cluster: batcsg1
         annotations:
           summary: "{{ $labels.instance }} is down"
-          description: "Beowulf node {{ $labels.instance }} has been unreachable for 2+ minutes."
+          description: "OpenStack node {{ $labels.instance }} has been unreachable for 2+ minutes."
 
   - name: alert-rules
     interval: 30s
@@ -20,7 +20,7 @@ groups:
         labels:
           severity: warning
           team: backend
-          cluster: beowulf
+          cluster: batcsg1
         annotations:
           summary: "High CPU load on {{ $labels.instance }}"
           description: "CPU usage on {{ $labels.instance }} has exceeded 85% for 5 minutes. Current: {{ $value | printf \"%.1f\" }}%."
@@ -31,7 +31,7 @@ groups:
         labels:
           severity: warning
           team: backend
-          cluster: beowulf
+          cluster: batcsg1
         annotations:
           summary: "High disk usage on {{ $labels.instance }}"
           description: "Filesystem {{ $labels.mountpoint }} on {{ $labels.instance }} is {{ $value | printf \"%.1f\" }}% full."
@@ -42,7 +42,7 @@ groups:
         labels:
           severity: warning
           team: backend
-          cluster: beowulf
+          cluster: batcsg1
         annotations:
           summary: "Too many logged-in users on {{ $labels.instance }}"
           description: "{{ $labels.instance }} has {{ $value }} active user sessions, which exceeds the threshold of 5."
@@ -53,7 +53,7 @@ groups:
         labels:
           severity: warning
           team: backend
-          cluster: beowulf
+          cluster: batcsg1
         annotations:
           summary: "High memory usage on {{ $labels.instance }}"
           description: "Memory usage on {{ $labels.instance }} has exceeded 85% for 5 minutes. Current: {{ $value | printf \"%.1f\" }}%."
@@ -64,7 +64,7 @@ groups:
         labels:
           severity: warning
           team: backend
-          cluster: beowulf
+          cluster: batcsg1
         annotations:
           summary: "High swap usage on {{ $labels.instance }}"
           description: "Swap usage on {{ $labels.instance }} has exceeded 50%, indicating memory pressure. Current: {{ $value | printf \"%.1f\" }}%."

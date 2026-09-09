@@ -1,9 +1,9 @@
 #!/bin/bash
 set -euo pipefail
 
-OUTFILE="/etc/prometheus/targets/beowulf-nodes.yml"
+OUTFILE="/etc/prometheus/targets/batcsg1-nodes.yml"
 NODES=$(puppetserver ca list --all \
-  | grep -oP 'beowulf-\d+\.op\.ac\.nz' \
+  | grep -oP 'batcsg1-(web|app|db)' \
   | sort -u)
 
 {
@@ -12,6 +12,5 @@ NODES=$(puppetserver ca list --all \
     echo "    - ${n}:9100"
   done
   echo "  labels:"
-  echo "    cluster: beowulf"
-  echo "    role: worker"
+  echo "    cluster: batcsg1"
 } > "$OUTFILE"

@@ -10,12 +10,12 @@ route:
   receiver: default
   routes:
     - matchers:
-        - cluster="beowulf"
-      receiver: beowulf-teams
+        - cluster="batcsg1"
+      receiver: batcsg1-teams
 
 receivers:
   - name: default
-  - name: beowulf-teams
+  - name: batcsg1-teams
 <% if scope['alertmanager::manage_teams'] -%>
     msteamsv2_configs:
       - webhook_url: '<%= scope['alertmanager::teams_webhook_url'] %>'

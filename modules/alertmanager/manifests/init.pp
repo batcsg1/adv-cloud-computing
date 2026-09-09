@@ -19,7 +19,10 @@ class alertmanager (
   # Teams delivery. msteamsv2 needs Alertmanager >= 0.28. Source the URL from
   # Hiera eyaml, not plaintext - it is a bearer credential.
   Boolean $manage_teams       = true,
-  String $teams_webhook_url = 'https://default450e682488ab4ad2914db0f385da60.0c.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/10/workflows/c33087ff293b4696911aab032f8303c5/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=gY3XJZR2d0cEst_CGhrjgdAHA_k102rbxc56_6U2g7k',
+  # Do not hardcode the real webhook URL here - it is a bearer credential.
+  # Source it from Hiera eyaml (e.g. alertmanager::teams_webhook_url in
+  # secrets.eyaml) so the signed URL never lands in plaintext in git.
+  String $teams_webhook_url = 'https://REPLACE_ME.invalid/set-via-hiera-eyaml',
 ) {
 
   contain alertmanager::install
