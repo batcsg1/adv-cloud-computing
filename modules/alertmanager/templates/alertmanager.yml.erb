@@ -1,0 +1,23 @@
+# MANAGED BY PUPPET - alertmanager module
+global:
+  resolve_timeout: 30s
+
+route:
+  group_by: [<%= scope['alertmanager::group_by'].map { |g| "'#{g}'" }.join(', ') %>]
+  group_wait: <%= scope['alertmanager::group_wait_seconds'] %>s
+  group_interval: <%= scope['alertmanager::group_interval'] %>
+  repeat_interval: <%= scope['alertmanager::repeat_interval'] %>
+  receiver: default
+  routes:
+    - matchers:
+        - cluster="beowulf"
+      receiver: beowulf-teams
+
+receivers:
+  - name: default
+  - name: beowulf-teams
+<% if scope['alertmanager::manage_teams'] -%>
+    msteamsv2_configs:
+      - webhook_url: '<%= scope['alertmanager::teams_webhook_url'] %>'
+        send_resolved: true
+<% end -%>

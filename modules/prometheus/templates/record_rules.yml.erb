@@ -1,0 +1,28 @@
+groups:
+  - name: record-rules
+    interval: 30s
+    rules:
+      - record: node_memory_used_percent
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100
+        labels:
+          team: backend
+
+      - record: node_cpu_usage_percent
+        expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)
+        labels:
+          team: backend
+
+      - record: node_disk_usage_percent
+        expr: (1 - node_filesystem_avail_bytes{fstype!~"tmpfs|overlay"} / node_filesystem_size_bytes) * 100
+        labels:
+          team: backend
+
+      - record: node_logged_in_users
+        expr: node_logind_sessions
+        labels:
+          team: backend
+
+      - record: node_swap_usage_percent
+        expr: (1 - (node_memory_SwapFree_bytes / node_memory_SwapTotal_bytes)) * 100
+        labels:
+          team: backend
