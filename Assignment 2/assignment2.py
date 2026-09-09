@@ -138,6 +138,29 @@ def create():
         # 3. Servers: web, app, db
         # ---------------------------------------------------------------
 
+        # Declare keypair name and path
+
+        KEYPAIR_NAME = f'{USERNAME}-keypair'
+        SSH_KEY_PATH = os.path.expanduser(f'~/.ssh/{KEYPAIR_NAME}')
+
+        # ---------------------------------------------------------------
+        # Key pair, used to SSH into the web server
+        # ---------------------------------------------------------------
+        keypair = conn.compute.find_keypair(KEYPAIR_NAME)
+        if keypair is None:
+            keypair = conn.compute.create_keypair(name=KEYPAIR_NAME)
+
+            # The private key is only ever returned once, at creation time -
+            # OpenStack never stores it, so it has to be saved right now or it's gone.
+            os.makedirs(os.path.dirname(SSH_KEY_PATH), mode=0o700, exist_ok=True)
+            with open(SSH_KEY_PATH, 'w') as f:
+                f.write(keypair.private_key)
+            os.chmod(SSH_KEY_PATH, 0o600)  # SSH refuses to use a key with looser permissions
+
+            print(f'Created key pair: {keypair.name} (private key saved to {SSH_KEY_PATH})')
+        else:
+            print(f'Key pair already exists: {keypair.name}')
+
         # Find the flavour from specified flavour name
         flavor_obj = conn.compute.find_flavor(FLAVOR_NAME)
         if flavor_obj is None:
@@ -161,7 +184,6 @@ def create():
             server_name = f'{USERNAME}-{role}'
             server = conn.compute.find_server(server_name)
 
-            # If the server doesn't exist
             if server is None:
                 server = conn.compute.create_server(
                     name=server_name,
@@ -169,6 +191,7 @@ def create():
                     image_id=image_obj.id,
                     networks=[{'uuid': network.id}],
                     security_groups=[{'name': SECURITY_GROUP}],
+                    key_name=keypair.name,   # now applied to web, app, and db
                 )
                 server = conn.compute.wait_for_server(server)
                 print(f'Created server: {server.name} (ID: {server.id})')
