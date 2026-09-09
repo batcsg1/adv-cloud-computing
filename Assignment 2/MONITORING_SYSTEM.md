@@ -54,7 +54,7 @@ sudo apt install -y iputils-ping git vim nano
 
 ```bash
 ssh batcsg1-app # Run from the `sb-vm` in a second window
-
+```
 
 ```bash
 ssh batcsg1-db # Run from the `sb-vm` in a third window
