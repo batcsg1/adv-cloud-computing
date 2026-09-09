@@ -102,11 +102,29 @@ echo 'Defaults secure_path="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/s
 sudo puppet config set certname $(hostname -f) --section main
 ```
 
-- Set an aggresively small memory cap for Puppetserver
+- Set an aggresively small memory cap for Puppetserver on the `web` machine
 
 ```bash
 sudo sed -i 's/^JAVA_ARGS=.*/JAVA_ARGS="-Xms256m -Xmx512m"/' /etc/default/puppetserver
 sudo systemctl daemon-reload
+```
+- Allocate **1G** swap as a safety buffer on the `web` machine
+
+```bash
+sudo fallocate -l 1G /swapfile
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+free -h   # confirm swap shows up
+```
+
+
+
+- On the all machines local Puppet agents, set the `web` server to be the Puppet server
+
+```bash
+sudo puppet config set server batcsg1-web.op.ac.nz --section main
 ```
 
 - On the `web` machine enable and start the Puppet server
@@ -121,15 +139,15 @@ sudo systemctl enable --now puppetserver
 sudo systemctl enable --now puppet
 ```
 
-- On the `db` and `app` machines set the `web` server to be the Puppet server and run the agent to generate a CSR
+- On the `db` and `app` machines run the agent to generate a CSR
 
 ```bash
-sudo puppet config set server batcsg1-web.op.ac.nz --section main
+
 sudo puppet agent -t
 ```
 
 - On the `web` server, sign the incoming certificateds from the `app` and `db` machines
 
 ```bash
-sudo puppetserver ca list 
+sudo puppetserver ca list --all
 ```
