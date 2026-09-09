@@ -407,9 +407,41 @@ def destroy():
         print(f'Error destroying resources: {str(e)}')
 
 def status():
-    ''' Print a status report on the OpenStack virtual machines created by the create action.
-    '''
-    pass
+    '''Print a status report on the OpenStack virtual machines created by
+    the create action.'''
+
+    print('Executing the `status` function')
+
+    conn = connect()
+    if conn is None:
+        return
+
+    for role in SERVER_ROLES:
+        server_name = f'{USERNAME}-{role}'
+        try:
+            server = conn.compute.find_server(server_name)
+            if server is None:
+                print(f'{server_name}: does not exist')
+                continue
+
+            server = conn.compute.get_server(server.id)
+
+            floating_ips = [
+                addr['addr']
+                for addrs in (server.addresses or {}).values()
+                for addr in addrs
+                if addr.get('OS-EXT-IPS:type') == 'floating'
+            ]
+            floating_ip_str = ', '.join(floating_ips) if floating_ips else 'none'
+
+            print(
+                f'{server.name}: status={server.status}, '
+                f'flavor={server.flavor.get("original_name", server.flavor.get("id"))}, '
+                f'floating IP={floating_ip_str}'
+            )
+
+        except Exception as e:
+            print(f'Error getting status for {server_name}: {str(e)}')
 
 
 ### You should not modify anything below this line ###
