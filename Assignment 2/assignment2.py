@@ -356,6 +356,20 @@ def destroy():
             print(f'Deleted server: {server_name}')
 
         # ---------------------------------------------------------------
+        # Key pair
+        # ---------------------------------------------------------------
+        try:
+            keypair = conn.compute.find_keypair(KEYPAIR_NAME)
+            if keypair is None:
+                print(f'Key pair does not exist: {KEYPAIR_NAME}')
+            else:
+                conn.compute.delete_keypair(keypair, ignore_missing=True)
+                print(f'Deleted key pair: {KEYPAIR_NAME}')
+        except Exception as e:
+            print(f'Error deleting key pair {KEYPAIR_NAME}: {str(e)}')
+            
+
+        # ---------------------------------------------------------------
         # 3. Floating IP 
         # ---------------------------------------------------------------
 
