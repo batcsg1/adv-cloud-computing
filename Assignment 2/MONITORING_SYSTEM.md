@@ -329,9 +329,15 @@ Had to add the local Prometheus server as a data source by navigating through th
 
 ![alt text](image-10.png)
 
-### Grafana Dashboard
+### Grafana Dashboards
+
+#### Initial dashboard
 
 ![alt text](image-11.png)
+
+#### Final dashboard
+
+![alt text](image-17.png)
 
 ---
 
@@ -349,9 +355,21 @@ Verified the `app` server appeared as down on my custom Grafana dashboard.
 
 On Microsoft Teams I created my own Teams and added a dedicated channel specifically for Prometheus alerts
 
+Notification about the app machine being down:
+
+![alt text](image-16.png)
+
 Successfully verified I received a Prometheus based alert on my dedicated Teams channel.
 
 ![alt text](image-14.png)
+
+An alert I received about the `web` machines swap usage being high.
+
+![alt text](image-18.png)
+
+Got a message saying the high swap usage alert had been resolved.
+
+![alt text](image-19.png)
 
 ---
 
