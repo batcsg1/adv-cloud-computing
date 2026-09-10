@@ -311,6 +311,9 @@ You should see the `modules` folder
 ```bash
 pp agent -t
 ```
+Verified Grafana, Prometheus, Node Exporter and Alertmanager were listening on the `web` machine.
+
+![alt text](image-15.png)
 
 ## Grafana
 
