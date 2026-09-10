@@ -20,7 +20,7 @@ PUBLIC_NETWORK_NAME = 'public-net'
 SUBNET_CIDR = '192.168.50.0/24'
 IMAGE_NAME = 'ubuntu-minimal-22.04-x86_64'
 FLAVOR_NAME = 'c1.c1r1'
-SECURITY_GROUP = 'sb-security-group'
+SECURITY_GROUP = 'assignment2'
 SERVER_ROLES = ['web', 'app', 'db']
 
 def connect():
@@ -32,7 +32,6 @@ def connect():
         'project_domain_name': os.environ.get('OS_PROJECT_DOMAIN_NAME', 'Default'),
         'username': os.environ.get('OS_USERNAME'),
         'password': os.environ.get('OS_PASSWORD'),
-        'user_domain_name': os.environ.get('OS_USER_DOMAIN_NAME', 'Default'),
         'region_name': os.environ.get('OS_REGION_NAME', 'nz-hlz-1'),
     }
  
@@ -319,6 +318,8 @@ def destroy():
     conn = connect()
     if conn is None:
         return
+
+    KEYPAIR_NAME = f'{USERNAME}-keypair'
 
     net_name = f'{USERNAME}-net'
     subnet_name = f'{USERNAME}-subnet'
