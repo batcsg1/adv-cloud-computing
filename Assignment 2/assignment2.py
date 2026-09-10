@@ -33,6 +33,7 @@ def connect():
         'username': os.environ.get('OS_USERNAME'),
         'password': os.environ.get('OS_PASSWORD'),
         'region_name': os.environ.get('OS_REGION_NAME', 'nz-hlz-1'),
+        'user_domain_name': os.environ.get('OS_USER_DOMAIN_NAME', 'Default'),
     }
  
     try:
