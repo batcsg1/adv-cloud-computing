@@ -14,9 +14,9 @@ setup of Puppet, which will deploy the monitoring system and its components.
 
 ```bash
 sudo tee -a /etc/hosts << EOF
-192.168.50.27 batcsg1-web.op.ac.nz batcsg1-web
-192.168.50.26 batcsg1-app.op.ac.nz batcsg1-app
-192.168.50.175 batcsg1-db.op.ac.nz batcsg1-db
+192.168.50.14 batcsg1-web.op.ac.nz batcsg1-web
+192.168.50.161 batcsg1-app.op.ac.nz batcsg1-app
+192.168.50.203 batcsg1-db.op.ac.nz batcsg1-db
 EOF
 ```
 ### Key-based SSH setup
@@ -47,12 +47,6 @@ ssh batcsg1-web # Run from the `sb-vm`
 ```
 
 ```bash
-sudo apt update
-sudo apt install -y iputils-ping git vim nano
-```
-- Install required packages on the `app` and `db` servers
-
-```bash
 ssh batcsg1-app # Run from the `sb-vm` in a second window
 
 
@@ -60,7 +54,7 @@ ssh batcsg1-app # Run from the `sb-vm` in a second window
 ssh batcsg1-db # Run from the `sb-vm` in a third window
 ```
 
-- Run on the `eb`, `db` and `app` machines
+- Install required packages on the `app` and `db` and `web` servers
 
 ```bash
 sudo apt update
@@ -76,9 +70,10 @@ wget https://apt.puppet.com/puppet8-release-jammy.deb
 sudo dpkg -i puppet8-release-jammy.deb
 sudo apt update
 sudo apt install -y puppetserver puppet-agent
-echo 'export PATH=$PATH:/opt/puppetlabs/bin' | sudo tee -a /etc/profile.d/puppet.sh
-source /etc/profile.d/puppet.sh
-echo 'Defaults secure_path="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/puppetlabs/bin"' | sudo tee /etc/sudoers.d/puppet
+echo 'export PATH=$PATH:/opt/puppetlabs/bin' >> ~/.bashrc
+echo "alias pp='sudo /opt/puppetlabs/bin/puppet'" >> ~/.bashrc
+echo "alias pps='sudo /opt/puppetlabs/bin/puppetserver'" >> ~/.bashrc
+source ~/.bashrc
 ```
 
 - Install `puppet-agent` on `batcsg1-db` and `batcsg1-app`
@@ -89,9 +84,9 @@ wget https://apt.puppet.com/puppet8-release-jammy.deb
 sudo dpkg -i puppet8-release-jammy.deb
 sudo apt update
 sudo apt install -y puppet-agent
-echo 'export PATH=$PATH:/opt/puppetlabs/bin' | sudo tee -a /etc/profile.d/puppet.sh
-source /etc/profile.d/puppet.sh
-echo 'Defaults secure_path="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/puppetlabs/bin"' | sudo tee /etc/sudoers.d/puppet
+echo 'export PATH=$PATH:/opt/puppetlabs/bin' >> ~/.bashrc
+echo "alias pp='sudo /opt/puppetlabs/bin/puppet'" >> ~/.bashrc
+source ~/.bashrc
 ```
 
 ### Configuring Puppet
@@ -99,7 +94,7 @@ echo 'Defaults secure_path="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/s
 - Setup the certificate name on each machine to be set to the **FQDN**
 
 ```bash
-sudo puppet config set certname $(hostname -f) --section main
+pp config set certname $(hostname -f) --section main
 ```
 
 - Set an aggresively small memory cap for Puppetserver on the `web` machine
@@ -124,7 +119,7 @@ free -h   # confirm swap shows up
 - On the all machines local Puppet agents, set the `web` server to be the Puppet server
 
 ```bash
-sudo puppet config set server batcsg1-web.op.ac.nz --section main
+pp config set server batcsg1-web.op.ac.nz --section main
 ```
 
 - On the `web` machine enable and start the Puppet server
@@ -139,15 +134,32 @@ sudo systemctl enable --now puppetserver
 sudo systemctl enable --now puppet
 ```
 
-- On the `db` and `app` machines run the agent to generate a CSR
+- On the `db` and `app` machines view the logs of the Puppet agent daemon
 
 ```bash
-
-sudo puppet agent -t
+sudo journalctl -u puppet -f
 ```
 
 - On the `web` server, sign the incoming certificateds from the `app` and `db` machines
 
 ```bash
-sudo puppetserver ca list --all
+pps ca list --all
 ```
+
+You should see the following certificate requests generated from the `app` and `db` machines.
+
+![alt text](image.png)
+
+- Sign the agent certificates on the `web` machine
+
+```bash
+pps ca sign --all
+```
+
+Once signed you should see the following output, confirming both the `app` and `db` certificates have been signed.
+
+![alt text](image-2.png)
+
+Verify the agent certificates are signed by the Puppet CA
+
+![alt text](image-1.png)
