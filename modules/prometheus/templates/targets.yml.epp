@@ -1,0 +1,11 @@
+<%- | Hash $groups, Integer $port, String $domain | -%>
+# Managed by Puppet — do not edit
+<% $groups.each |$name, $g| { -%>
+- targets:
+<% $g['hosts'].each |$h| { -%>
+    - <%= $h %>.<%= $domain %>:<%= $port %>
+<% } -%>
+  labels:
+    cluster: <%= $g['cluster'] %>
+    role: <%= $g['role'] %>
+<% } -%>

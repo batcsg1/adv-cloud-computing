@@ -1,33 +1,25 @@
-class prometheus::targets {
-  file { '/etc/prometheus':
+class prometheus::targets (
+  Hash            $groups,
+  Integer         $port   = 9100,
+  String          $domain = 'op.ac.nz',
+) {
+  file { ['/etc/prometheus', '/etc/prometheus/targets']:
     ensure => directory,
     owner  => 'root',
-    group  => 'root',
-    mode   => '0755',
+    group  => 'prometheus',
+    mode   => '0750',
   }
 
-  file { '/etc/prometheus/targets':
-    ensure => directory,
-    owner  => 'root',
-    group  => 'root',
-    mode   => '0755',
-  }
-
-  file { '/usr/local/bin/generate-prometheus-targets.sh':
-    ensure => file,
-    source => 'puppet:///modules/prometheus/generate-prometheus-targets.sh',
-    owner  => 'root',
-    group  => 'root',
-    mode   => '0755',
-  }
-
-  cron { 'generate-prometheus-targets':
-    command => '/usr/local/bin/generate-prometheus-targets.sh',
-    user    => 'root',
-    minute  => '*/5',
-    require => [
-      File['/usr/local/bin/generate-prometheus-targets.sh'],
-      File['/etc/prometheus/targets'],
-    ],
+  file { '/etc/prometheus/targets/targets.yml':
+    ensure  => file,
+    owner   => 'root',
+    group   => 'prometheus',
+    mode    => '0640',
+    content => epp('prometheus/targets.yml.epp', {
+      'groups' => $groups,
+      'port'   => $port,
+      'domain' => $domain,
+    }),
+    require => File['/etc/prometheus/targets'],
   }
 }

@@ -1,0 +1,16 @@
+---
+prometheus::targets::port: 9100
+prometheus::targets::domain: 'op.ac.nz'
+
+prometheus::targets::groups:
+  worker:
+    cluster: batcsg1
+    role: worker
+    hosts:
+      - batcsg1-app
+      - batcsg1-db
+  ca_master:
+    cluster: batcsg1
+    role: ca_master
+    hosts:
+      - beowulf-web
