@@ -315,6 +315,8 @@ Verified Grafana, Prometheus, Node Exporter and Alertmanager were listening on t
 
 ![alt text](image-15.png)
 
+---
+
 ## Grafana
 
 Verified I could successfully access my Grafana server running on the `web` server
@@ -331,7 +333,9 @@ Had to add the local Prometheus server as a data source by navigating through th
 
 ![alt text](image-11.png)
 
-### Alerts
+---
+
+## Alerts
 
 Turned off my `app` server on the Catalyst Cloud Portal
 
@@ -349,6 +353,7 @@ Successfully verified I received a Prometheus based alert on my dedicated Teams 
 
 ![alt text](image-14.png)
 
+---
 
 ## Prometheus
 
