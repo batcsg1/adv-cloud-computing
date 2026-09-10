@@ -100,7 +100,7 @@ pp config set certname $(hostname -f) --section main
 - Set an aggresively small memory cap for Puppetserver on the `web` machine
 
 ```bash
-sudo sed -i 's/^JAVA_ARGS=.*/JAVA_ARGS="-Xms256m -Xmx512m"/' /etc/default/puppetserver
+sudo sed -i 's/-Xms[0-9]*[mg] -Xmx[0-9]*[mg]/-Xms512m -Xmx512m/' /etc/default/puppetserver
 sudo systemctl daemon-reload
 ```
 - Allocate **1G** swap as a safety buffer on the `web` machine
@@ -163,3 +163,158 @@ Once signed you should see the following output, confirming both the `app` and `
 Verify the agent certificates are signed by the Puppet CA
 
 ![alt text](image-1.png)
+
+### Deploying Git Puppet code to live production Puppet code
+
+#### Generating `r10k` SSH keys
+
+- Make a dedicated SSH directory for the `puppet` user
+
+```bash
+sudo mkdir -p /etc/puppetlabs/puppet/.ssh
+sudo chown puppet:puppet /etc/puppetlabs/puppet/.ssh
+sudo chmod 700 /etc/puppetlabs/puppet/.ssh
+```
+- Generate an SSH keypair to setup the deploy keys for the `adv-cloud-computing` repository
+
+```bash
+sudo -u puppet ssh-keygen -t ed25519 -C "batcsg1-web r10k deploy" \
+  -f /etc/puppetlabs/puppet/.ssh/id_ed25519_r10k -N ""
+```
+
+- Create the r10k directory and the configuration file
+
+```bash
+sudo mkdir -p /etc/puppetlabs/r10k
+sudo tee /etc/puppetlabs/r10k/r10k.yaml > /dev/null <<'EOF'
+---
+# cachedir is where r10k caches git clones
+cachedir: '/var/cache/r10k'
+
+git:
+  private_key: '/etc/puppetlabs/puppet/.ssh/id_ed25519_r10k'
+
+sources:
+  control:
+    remote: 'git@github.com:batcsg1/adv-cloud-computing.git'
+    basedir: '/etc/puppetlabs/code/environments'
+EOF
+```
+
+- Create the r10k cache directory
+
+```bash
+sudo mkdir -p /var/cache/r10k
+sudo chown puppet:puppet /var/cache/r10k
+```
+
+- View the public r10k key
+
+```bash
+sudo cat /etc/puppetlabs/puppet/.ssh/id_ed25519_r10k.pub
+```
+
+- Copy the contents of the public key to the GitHub repo: https://github.com/batcsg1/adv-cloud-computing
+
+Go to 'Settings'
+- On the left panel, navigate down to 'Deploy keys'
+
+- Fill in the title
+- Paste the public key into the box where it says 'Key'
+
+
+![alt text](image-3.png)
+
+- Select 'Allow write access'
+
+![alt text](image-4.png)
+
+- Verify the connection to `github.com` using the private r10k key in the Puppet user's SSH directory
+
+```bash
+sudo ssh -i /etc/puppetlabs/puppet/.ssh/id_ed25519_r10k -T git@github.com
+```
+
+You should get prompted for if you want to connect, enter 'Yes'
+
+![alt text](image-5.png)
+
+You should see the following message:
+
+![alt text](image-6.png)
+
+Install Puppet r10k on the `web` machine
+
+```bash
+sudo apt install -y ruby ruby-dev build-essential
+sudo gem install r10k --no-document
+```
+
+Verify `r10k` is installed simply by running:
+
+```bash
+which r10k
+```
+
+#### Cloning the GitHub repo
+
+```bash
+sudo GIT_SSH_COMMAND='ssh -i /etc/puppetlabs/puppet/.ssh/id_ed25519_r10k -o IdentitiesOnly=yes' \
+  git clone git@github.com:batcsg1/adv-cloud-computing.git
+```
+
+Change the ownership of the local repo to be set to the `ubuntu` user
+
+```bash
+sudo chown -R ubuntu:ubuntu ~/adv-cloud-computing
+```
+
+Run the following commands to be able to pull changes from the GitHub repo properly
+
+```bash
+cd ~/adv-cloud-computing
+sudo git config core.sshCommand 'ssh -i /etc/puppetlabs/puppet/.ssh/id_ed25519_r10k -o IdentitiesOnly=yes'
+sudo git pull
+```
+
+### Running r10k to deploy repo code to live Puppet code
+
+```bash
+sudo mkdir -p /root/.ssh && sudo chmod 700 /root/.ssh
+sudo tee /root/.ssh/config > /dev/null <<'EOF'
+Host github.com
+  IdentityFile /etc/puppetlabs/puppet/.ssh/id_ed25519_r10k
+  IdentitiesOnly yes
+EOF
+sudo chmod 600 /root/.ssh/config
+```
+
+Finally run the command to deploy the git Puppet code to the `web` machine's live Puppet code
+
+```bash
+sudo r10k deploy environment production -pv
+```
+
+You should see the following output:
+
+![alt text](image-7.png)
+
+Verify the Puppet production environment folder was created and list its contents
+
+```bash
+ls /etc/puppetlabs/code/environments/production/
+```
+You should see the `modules` folder
+
+#### Run the Puppet agent on all machines
+
+```bash
+pp agent -t
+```
+
+## Grafana
+
+Verified I could successfully access my Grafana server running on the `web` server
+
+![alt text](image-8.png)
+

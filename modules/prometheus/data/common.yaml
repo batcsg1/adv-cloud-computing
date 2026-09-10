@@ -13,4 +13,4 @@ prometheus::targets::groups:
     cluster: batcsg1
     role: ca_master
     hosts:
-      - beowulf-web
+      - batcsg1-web
