@@ -48,7 +48,7 @@ ssh batcsg1-web # Run from the `sb-vm`
 
 ```bash
 ssh batcsg1-app # Run from the `sb-vm` in a second window
-
+```
 
 ```bash
 ssh batcsg1-db # Run from the `sb-vm` in a third window
