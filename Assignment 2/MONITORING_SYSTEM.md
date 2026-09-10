@@ -328,8 +328,23 @@ Had to add the local Prometheus server as a data source by navigating through th
 
 ![alt text](image-11.png)
 
+### Alerts
 
+Turned off my `app` server on the Catalyst Cloud Portal
 
+![alt text](image-12.png)
+
+Verified the `app` server appeared as down on my custom Grafana dashboard.
+
+![alt text](image-13.png)
+
+### Microsoft Teams
+
+On Microsoft Teams I created my own Teams and added a dedicated channel specifically for Prometheus alerts
+
+Successfully verified I received a Prometheus based alert on my dedicated Teams channel.
+
+![alt text](image-14.png)
 
 
 ## Prometheus
