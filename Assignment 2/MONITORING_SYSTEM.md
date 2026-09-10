@@ -318,3 +318,22 @@ Verified I could successfully access my Grafana server running on the `web` serv
 
 ![alt text](image-8.png)
 
+Had to add the local Prometheus server as a data source by navigating through the left panel and going through:
+
+'Connections' > 'Data sources'
+
+![alt text](image-10.png)
+
+### Grafana Dashboard
+
+![alt text](image-11.png)
+
+
+
+
+
+## Prometheus
+
+Verified I could successfully access my Prometheus server, and all nodes are reachable.
+
+![alt text](image-9.png)
