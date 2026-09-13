@@ -1,0 +1,14 @@
+---
+alertmanager::version: '0.28.1'
+alertmanager::install_dir: '/usr/local/bin'
+alertmanager::config_dir: '/etc/alertmanager'
+alertmanager::data_dir: '/var/lib/alertmanager'
+alertmanager::user: 'root'
+alertmanager::group_wait_seconds: 30
+alertmanager::group_interval: '5m'
+alertmanager::repeat_interval: '5m'
+alertmanager::group_by:
+  - 'alertname'
+  - 'severity'
+  - 'cluster'
+alertmanager::manage_teams: true
