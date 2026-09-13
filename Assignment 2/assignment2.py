@@ -277,8 +277,8 @@ def run():
     for role in SERVER_ROLES:
         server_name = f'{USERNAME}-{role}'
         try:
-            print(f'Attempting to start {server_name}')
             server = conn.compute.find_server(server_name)
+            print(f'Attempting to start {server_name}')
             if server is None:
                 print(f'Error: server "{server_name}" does not exist')
                 continue
@@ -305,8 +305,8 @@ def stop():
         return
 
     for role in SERVER_ROLES:
-        print(f'Attempting to stop {server_name}')
         server_name = f'{USERNAME}-{role}'
+        print(f'Attempting to stop {server_name}')
         try:
             server = conn.compute.find_server(server_name)
             if server is None:
@@ -346,8 +346,8 @@ def destroy():
         # 1. Capture the web server's floating IP address before we delete
         #    the server (once the server is gone we lose the association).
         # ---------------------------------------------------------------
-        print(f'Attempting to stop {web_server_name}')
         web_server_name = f'{USERNAME}-web'
+        print(f'Attempting to stop {web_server_name}')
         web_server = conn.compute.find_server(web_server_name)
         floating_ip_address = None
 
