@@ -10,15 +10,18 @@ setup of Puppet, which will deploy the monitoring system and its components.
 
 ### Hostfile setup
 
-- Create the `/etc/hosts` file on each machine.
+- Create the `/etc/hosts` file on each machine. 
 
 ```bash
 sudo tee -a /etc/hosts << EOF
-192.168.50.14 batcsg1-web.op.ac.nz batcsg1-web
-192.168.50.161 batcsg1-app.op.ac.nz batcsg1-app
-192.168.50.203 batcsg1-db.op.ac.nz batcsg1-db
+192.168.50.221 batcsg1-web.op.ac.nz batcsg1-web
+192.168.50.50 batcsg1-app.op.ac.nz batcsg1-app
+192.168.50.213 batcsg1-db.op.ac.nz batcsg1-db
 EOF
 ```
+> Note: Add to the `/etc/hosts` file on the web machine first
+
+
 ### Key-based SSH setup
 
 From your host add these following lines to your SSH config
@@ -125,7 +128,7 @@ pp config set server batcsg1-web.op.ac.nz --section main
 - On the `web` machine enable and start the Puppet server
 
 ```bash
-sudo systemctl enable --now puppetserver
+sudo systemctl enable --now puppetserver ; sudo systemctl status puppetserver
 ```
 
 - On all the machines start and enable the Puppet agent
@@ -276,6 +279,57 @@ cd ~/adv-cloud-computing
 sudo git config core.sshCommand 'ssh -i /etc/puppetlabs/puppet/.ssh/id_ed25519_r10k -o IdentitiesOnly=yes'
 sudo git pull
 ```
+### Setting up secret manifest values using Encrypted YAML
+
+Install the `hiera-eyaml` library
+
+```bash
+sudo gem install hiera-eyaml
+```
+Create the directory for the `eyaml` keypair
+
+```bash
+sudo mkdir -p /etc/puppet/eyaml/keys
+```
+
+Generate the keypair using the `eyaml` command within the dedicated `eyaml` keypair
+directory
+
+```bash
+sudo eyaml createkeys \
+  --pkcs7-private-key=/etc/puppet/eyaml/keys/private_key.pkcs7.pem \
+  --pkcs7-public-key=/etc/puppet/eyaml/keys/public_key.pkcs7.pem
+```
+
+You should see the following output
+
+![alt text](image-20.png)
+
+Set and lock down the permissions
+
+```bash
+sudo chown root:root /etc/puppet/eyaml/keys/*.pem
+sudo chmod 0600 /etc/puppet/eyaml/keys/private_key.pkcs7.pem
+sudo chmod 0644 /etc/puppet/eyaml/keys/public_key.pkcs7.pem
+```
+
+Encrypt a secret variable such as the Teams webhook URL for the AlertManager `init.pp` manifest
+
+```bash
+eyaml encrypt -l 'alertmanager::teams_webhook_url' -s 'https://<the-secret-url>' \
+  --pkcs7-public-key=/etc/puppet/eyaml/keys/public_key.pkcs7.pem
+```
+
+You should see a large generated encrypted string like the following:
+
+![alt text](image-21.png)
+
+> Note: Make sure you copy the string below the `OR` you see in the above screenshot.
+
+Paste the contents into the `secrets.eyaml` file in the `data/` directory in the AlertManager module
+
+![alt text](image-22.png)
+
 
 ### Running r10k to deploy repo code to live Puppet code
 
