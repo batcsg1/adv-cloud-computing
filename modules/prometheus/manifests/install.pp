@@ -11,10 +11,13 @@ class prometheus::install {
   }
 
   exec { 'download_prometheus':
-    command => "wget https://github.com/prometheus/prometheus/releases/download/v${version}/prometheus-${version}.linux-amd64.tar.gz",
-    cwd     => '/opt',
-    creates => "/opt/prometheus-${version}.linux-amd64.tar.gz",
-    path    => ['/usr/bin', '/bin'],
+    command   => "wget --no-verbose --tries=3 --timeout=60 -O prometheus-${version}.linux-amd64.tar.gz.partial https://github.com/prometheus/prometheus/releases/download/v${version}/prometheus-${version}.linux-amd64.tar.gz && mv prometheus-${version}.linux-amd64.tar.gz.partial prometheus-${version}.linux-amd64.tar.gz",
+    cwd       => '/opt',
+    creates   => "/opt/prometheus-${version}.linux-amd64.tar.gz",
+    path      => ['/usr/bin', '/bin'],
+    provider  => shell,
+    timeout   => 600,
+    logoutput => on_failure,
   }
 
   exec { 'extract_prometheus':
