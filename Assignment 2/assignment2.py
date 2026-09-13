@@ -37,6 +37,7 @@ def connect():
     }
  
     try:
+        print('Connecting to the OpenStack API')
         conn = openstack.connect(**auth)
         print(f'Successfully authenticated as {auth["username"]} into project {auth["project_name"]}!')
     except keystoneauth1.exceptions.ClientException as e:
@@ -77,6 +78,7 @@ def create():
         # Create the network 
         network = conn.network.find_network(net_name)
         if network is None:
+            print(f'Creating network: {net_name}')
             network = conn.network.create_network(name=net_name)
             print(f'Created network: {network.name} (ID: {network.id})')
         else:
@@ -85,6 +87,7 @@ def create():
         # Create a subnet
         subnet = conn.network.find_subnet(subnet_name)
         if subnet is None:
+            print(f'Creating subnet: {subnet_name}')
             subnet = conn.network.create_subnet(
                 name=subnet_name,
                 network_id=network.id,
@@ -106,6 +109,7 @@ def create():
         # Find the public router
         router = conn.network.find_router(router_name)
         if router is None:
+            print(f'Creating router: {router_name}')
             router = conn.network.create_router(
                 name=router_name,
                 external_gateway_info={'network_id': public_net.id},
@@ -148,6 +152,7 @@ def create():
         # ---------------------------------------------------------------
         keypair = conn.compute.find_keypair(KEYPAIR_NAME)
         if keypair is None:
+            print(f'Creating keypair: {KEYPAIR_NAME}')
             keypair = conn.compute.create_keypair(name=KEYPAIR_NAME)
 
             # The private key is only ever returned once, at creation time -
@@ -162,16 +167,20 @@ def create():
             print(f'Key pair already exists: {keypair.name}')
 
         # Find the flavour from specified flavour name
+        print(f'Finding flavour: {FLAVOR_NAME}')
         flavor_obj = conn.compute.find_flavor(FLAVOR_NAME)
         if flavor_obj is None:
             raise Exception(f'Flavor "{FLAVOR_NAME}" not found')
 
+
         # Find the image for the new instances
+        print(f'Finding image: {IMAGE_NAME}')
         image_obj = conn.compute.find_image(IMAGE_NAME)
         if image_obj is None:
             raise Exception(f'Image "{IMAGE_NAME}" not found')
 
         # Find the security group
+        print(f'Finding security group: {SECURITY_GROUP}')
         security_group = conn.network.find_security_group(SECURITY_GROUP)
         if security_group is None:
             raise Exception(f'Security group "{SECURITY_GROUP}" not found')
@@ -180,11 +189,13 @@ def create():
         servers = {}
 
         # Create each of the server from the specified server roles
+        print(f'Creating the servers')
         for role in SERVER_ROLES:
             server_name = f'{USERNAME}-{role}'
             server = conn.compute.find_server(server_name)
 
             if server is None:
+                print(f'Creating server: {server_name}')
                 server = conn.compute.create_server(
                     name=server_name,
                     flavor_id=flavor_obj.id,
@@ -219,6 +230,7 @@ def create():
         else:
             # Reuse an existing unattached floating IP on the public network
             # if one is available, otherwise create a new one.
+            print(f'Attaching floating IP to {web_server.name}')
             floating_ip = next(
                 (
                     ip for ip in conn.network.ips(
@@ -231,6 +243,7 @@ def create():
 
         # Create the floating IP
         if floating_ip is None:
+            print(f'Creating floating IP')
             floating_ip = conn.network.create_ip(
                 floating_network_id=public_net.id
             )
@@ -264,6 +277,7 @@ def run():
     for role in SERVER_ROLES:
         server_name = f'{USERNAME}-{role}'
         try:
+            print(f'Attempting to start {server_name}')
             server = conn.compute.find_server(server_name)
             if server is None:
                 print(f'Error: server "{server_name}" does not exist')
@@ -291,6 +305,7 @@ def stop():
         return
 
     for role in SERVER_ROLES:
+        print(f'Attempting to stop {server_name}')
         server_name = f'{USERNAME}-{role}'
         try:
             server = conn.compute.find_server(server_name)
@@ -331,6 +346,7 @@ def destroy():
         # 1. Capture the web server's floating IP address before we delete
         #    the server (once the server is gone we lose the association).
         # ---------------------------------------------------------------
+        print(f'Attempting to stop {web_server_name}')
         web_server_name = f'{USERNAME}-web'
         web_server = conn.compute.find_server(web_server_name)
         floating_ip_address = None
@@ -349,6 +365,7 @@ def destroy():
         # Delete the servers specified in the create() function
         for role in SERVER_ROLES:
             server_name = f'{USERNAME}-{role}'
+            print(f'Deleting server: {server_name}')
             server = conn.compute.find_server(server_name)
             if server is None:
                 print(f'Server does not exist: {server_name}')
@@ -361,6 +378,7 @@ def destroy():
         # Key pair
         # ---------------------------------------------------------------
         try:
+            print(f'Creating keypair: {KEYPAIR_NAME}')
             keypair = conn.compute.find_keypair(KEYPAIR_NAME)
             if keypair is None:
                 print(f'Key pair does not exist: {KEYPAIR_NAME}')
@@ -377,6 +395,7 @@ def destroy():
 
         # Delete the Floating IP
         if floating_ip_address is not None:
+            print('Deleting floating IP')
             floating_ip = next(
                 (ip for ip in conn.network.ips()
                  if ip.floating_ip_address == floating_ip_address),
@@ -392,6 +411,7 @@ def destroy():
         # 4. Router - detach interface and clear gateway before deleting
         # ---------------------------------------------------------------
         try:
+            print(f'Deleting router: {router_name}')
             router = conn.network.find_router(router_name)
             if router is None:
                 print(f'Router does not exist: {router_name}')
@@ -406,6 +426,7 @@ def destroy():
             )
 
             if subnet_attached:
+                print(f'Removing subnet {subnet_name} interface from router {router_name}')                
                 conn.network.remove_interface_from_router(router, subnet_id=subnet.id)
                 print(f'Removed subnet {subnet_name} interface from router {router_name}')
 
@@ -425,6 +446,7 @@ def destroy():
 
         # Delete the subnet
         if subnet is not None:
+            print(f'Deleting subnet: {subnet_name}')
             conn.network.delete_subnet(subnet, ignore_missing=True)
             print(f'Deleted subnet: {subnet_name}')
         else:
@@ -437,6 +459,7 @@ def destroy():
         # Delete the netwrok
         network = conn.network.find_network(net_name)
         if network is not None:
+            print(f'Deleting network: {net_name}')
             conn.network.delete_network(network, ignore_missing=True)
             print(f'Deleted network: {net_name}')
         else:
@@ -457,6 +480,7 @@ def status():
 
     for role in SERVER_ROLES:
         server_name = f'{USERNAME}-{role}'
+        print(f'Obtaining status for {server_name}')
         try:
             server = conn.compute.find_server(server_name)
             if server is None:
