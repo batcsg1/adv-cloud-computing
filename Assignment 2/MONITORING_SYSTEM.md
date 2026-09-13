@@ -289,7 +289,7 @@ sudo gem install hiera-eyaml
 Create the directory for the `eyaml` keypair
 
 ```bash
-sudo mkdir -p /etc/puppet/eyaml/keys
+sudo mkdir -p /etc/puppetlabs/puppet/eyaml/keys
 ```
 
 Generate the keypair using the `eyaml` command within the dedicated `eyaml` keypair
@@ -297,8 +297,8 @@ directory
 
 ```bash
 sudo eyaml createkeys \
-  --pkcs7-private-key=/etc/puppet/eyaml/keys/private_key.pkcs7.pem \
-  --pkcs7-public-key=/etc/puppet/eyaml/keys/public_key.pkcs7.pem
+  --pkcs7-private-key=/etc/puppetlabs/puppet/eyaml/keys/private_key.pkcs7.pem \
+  --pkcs7-public-key=/etc/puppetlabs/puppet/eyaml/keys/public_key.pkcs7.pem
 ```
 
 You should see the following output
@@ -308,16 +308,17 @@ You should see the following output
 Set and lock down the permissions
 
 ```bash
-sudo chown root:root /etc/puppet/eyaml/keys/*.pem
-sudo chmod 0600 /etc/puppet/eyaml/keys/private_key.pkcs7.pem
-sudo chmod 0644 /etc/puppet/eyaml/keys/public_key.pkcs7.pem
+sudo chown -R puppet:puppet /etc/puppetlabs/puppet/eyaml/keys
+sudo chmod 0500 /etc/puppetlabs/puppet/eyaml/keys
+sudo chmod 0400 /etc/puppetlabs/puppet/eyaml/keys/private_key.pkcs7.pem
+sudo chmod 0444 /etc/puppetlabs/puppet/eyaml/keys/public_key.pkcs7.pem
 ```
 
 Encrypt a secret variable such as the Teams webhook URL for the AlertManager `init.pp` manifest
 
 ```bash
 eyaml encrypt -l 'alertmanager::teams_webhook_url' -s 'https://<the-secret-url>' \
-  --pkcs7-public-key=/etc/puppet/eyaml/keys/public_key.pkcs7.pem
+  --pkcs7-public-key=/etc/puppetlabs/puppet/eyaml/keys/public_key.pkcs7.pem
 ```
 
 You should see a large generated encrypted string like the following:
