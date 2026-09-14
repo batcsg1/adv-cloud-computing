@@ -382,13 +382,58 @@ Had to add the local Prometheus server as a data source by navigating through th
 
 'Connections' > 'Data sources'
 
+Specify the URL of the local Prometheus instance: `http://localhost:9090`
+
 ![alt text](image-10.png)
+
+Scroll down to select the `Save & test` option to query the Prometheus API
+
+![alt text](image-27.png)
+
+You should eventually see the following output:
+
+![alt text](image-28.png)
+
 
 ### Grafana Dashboards
 
-#### Initial dashboard
+#### Creating a dashboard
 
-![alt text](image-11.png)
+When creating a new dashboard, select the `Import dashboard` option
+
+![alt text](image-29.png)
+
+Obtain the dashboard code used in this assignment from the JSON file I have on my Advanced
+Cloud GitHub repo:
+
+https://github.com/batcsg1/adv-cloud-computing/blob/production/modules/grafana/dashboards/node_overview.json
+
+Copy the JSON content into the box in the screenshot below labelled: `Import via dashboard JSON model`
+
+![alt text](image-30.png)
+
+Select the `Load` button.
+
+> Note: To Get the dashboard to point to the Prometheus instance running on the `web` server and properly gather data I had modify the JSON code for the dashboard.
+
+1. Select the 'Edit' Option
+
+![alt text](image-23.png)
+
+2. Select the `{ }` code editor
+
+![alt text](image-24.png)
+
+3. Set the value of the `name` property of every occurance of the `datasource` object to be set to the UID of the Prometheus instance.
+
+The UID can be found my Navigating to 'Connections' > 'Data sources', and at the end of the URL you will see a random string at the end. This will be your UID
+
+![alt text](image-25.png)
+
+Select the `Apply changes` option at the bottom to save the changes to the dashboard
+
+![alt text](image-31.png)
+
 
 #### Final dashboard
 
@@ -396,7 +441,7 @@ Had to add the local Prometheus server as a data source by navigating through th
 
 ---
 
-## Alerts
+## Alerts and Notifications
 
 Turned off my `app` server on the Catalyst Cloud Portal
 
