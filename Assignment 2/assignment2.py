@@ -75,6 +75,7 @@ def create():
     router_name = f'{USERNAME}-rtr'
 
     try:
+        print(f'Creating resources...')
         # Create the network 
         network = conn.network.find_network(net_name)
         if network is None:
@@ -189,7 +190,6 @@ def create():
         servers = {}
 
         # Create each of the server from the specified server roles
-        print(f'Creating the servers')
         for role in SERVER_ROLES:
             server_name = f'{USERNAME}-{role}'
             server = conn.compute.find_server(server_name)
@@ -274,11 +274,12 @@ def run():
     if conn is None:
         return
 
+    print('Starting servers...')
     for role in SERVER_ROLES:
         server_name = f'{USERNAME}-{role}'
         try:
+            print(f'Starting server: {server_name}')
             server = conn.compute.find_server(server_name)
-            print(f'Attempting to start {server_name}')
             if server is None:
                 print(f'Error: server "{server_name}" does not exist')
                 continue
@@ -304,9 +305,10 @@ def stop():
     if conn is None:
         return
 
+    print('Stopping servers')
     for role in SERVER_ROLES:
         server_name = f'{USERNAME}-{role}'
-        print(f'Attempting to stop {server_name}')
+        print(f'Stopping server {server_name}')
         try:
             server = conn.compute.find_server(server_name)
             if server is None:
@@ -342,12 +344,12 @@ def destroy():
     router_name = f'{USERNAME}-rtr'
 
     try:
+        print('Destroying resources...')
         # ---------------------------------------------------------------
         # 1. Capture the web server's floating IP address before we delete
         #    the server (once the server is gone we lose the association).
         # ---------------------------------------------------------------
         web_server_name = f'{USERNAME}-web'
-        print(f'Attempting to stop {web_server_name}')
         web_server = conn.compute.find_server(web_server_name)
         floating_ip_address = None
 
@@ -361,7 +363,6 @@ def destroy():
         # ---------------------------------------------------------------
         # 2. Servers: web, app, db
         # ---------------------------------------------------------------
-
         # Delete the servers specified in the create() function
         for role in SERVER_ROLES:
             server_name = f'{USERNAME}-{role}'
@@ -378,7 +379,7 @@ def destroy():
         # Key pair
         # ---------------------------------------------------------------
         try:
-            print(f'Creating keypair: {KEYPAIR_NAME}')
+            print(f'Deleting keypair: {KEYPAIR_NAME}')
             keypair = conn.compute.find_keypair(KEYPAIR_NAME)
             if keypair is None:
                 print(f'Key pair does not exist: {KEYPAIR_NAME}')
