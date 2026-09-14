@@ -151,7 +151,7 @@ pps ca list --all
 
 You should see the following certificate requests generated from the `app` and `db` machines.
 
-![alt text](image.png)
+![Lisiting the signed and pending Puppetserver certificates](image.png)
 
 - Sign the agent certificates on the `web` machine
 
@@ -161,11 +161,11 @@ pps ca sign --all
 
 Once signed you should see the following output, confirming both the `app` and `db` certificates have been signed.
 
-![alt text](image-2.png)
+![Signing the database and app agent certificates](image-2.png)
 
 Verify the agent certificates are signed by the Puppet CA
 
-![alt text](image-1.png)
+![List and verify all signed agent certificates](image-1.png)
 
 ### Deploying Git Puppet code to live production Puppet code
 
@@ -226,11 +226,11 @@ Go to 'Settings'
 - Paste the public key into the box where it says 'Key'
 
 
-![alt text](image-3.png)
+![Paste the publick r10k deploy key](image-3.png)
 
 - Select 'Allow write access'
 
-![alt text](image-4.png)
+![Select 'Allow write access'](image-4.png)
 
 - Verify the connection to `github.com` using the private r10k key in the Puppet user's SSH directory
 
@@ -240,11 +240,11 @@ sudo ssh -i /etc/puppetlabs/puppet/.ssh/id_ed25519_r10k -T git@github.com
 
 You should get prompted for if you want to connect, enter 'Yes'
 
-![alt text](image-5.png)
+![Prompt for connecting to github.com over SSH](image-5.png)
 
 You should see the following message:
 
-![alt text](image-6.png)
+![Message indicating successfull SSH connection to Github](image-6.png)
 
 Install Puppet r10k on the `web` machine
 
@@ -303,7 +303,7 @@ sudo eyaml createkeys \
 
 You should see the following output
 
-![alt text](image-20.png)
+![Creating the eyaml keys](image-20.png)
 
 Set and lock down the permissions
 
@@ -323,13 +323,13 @@ eyaml encrypt -l 'alertmanager::teams_webhook_url' -s 'https://<the-secret-url>'
 
 You should see a large generated encrypted string like the following:
 
-![alt text](image-21.png)
+![Generating an eyaml-encrypted string](image-21.png)
 
 > Note: Make sure you copy the string below the `OR` you see in the above screenshot.
 
 Paste the contents into the `secrets.eyaml` file in the `data/` directory in the AlertManager module
 
-![alt text](image-22.png)
+![Pasting the generated encrypted string into secrets.eyaml](image-22.png)
 
 
 ### Running r10k to deploy repo code to live Puppet code
@@ -352,7 +352,7 @@ sudo r10k deploy environment production -pv
 
 You should see the following output:
 
-![alt text](image-7.png)
+![Deploy the Git-based Puppet code to the live Puppet codebase](image-7.png)
 
 Verify the Puppet production environment folder was created and list its contents
 
@@ -368,7 +368,7 @@ pp agent -t
 ```
 Verified Grafana, Prometheus, Node Exporter and Alertmanager were listening on the `web` machine.
 
-![alt text](image-15.png)
+![Verifying Grafana, Prometheus, Node Exporter and Alertmanager were active](image-15.png)
 
 ---
 
@@ -376,7 +376,7 @@ Verified Grafana, Prometheus, Node Exporter and Alertmanager were listening on t
 
 Verified I could successfully access my Grafana server running on the `web` server
 
-![alt text](image-8.png)
+![Accessing the Grafana server](image-8.png)
 
 Had to add the local Prometheus server as a data source by navigating through the left panel and going through:
 
@@ -384,15 +384,15 @@ Had to add the local Prometheus server as a data source by navigating through th
 
 Specify the URL of the local Prometheus instance: `http://localhost:9090`
 
-![alt text](image-10.png)
+![Adding Prometheus as a Grafana data source](image-10.png)
 
 Scroll down to select the `Save & test` option to query the Prometheus API
 
-![alt text](image-27.png)
+![Saving the Prometheus data source](image-27.png)
 
 You should eventually see the following output:
 
-![alt text](image-28.png)
+![Successfully querying the local Prometheus API](image-28.png)
 
 
 ### Grafana Dashboards
@@ -401,7 +401,7 @@ You should eventually see the following output:
 
 When creating a new dashboard, select the `Import dashboard` option
 
-![alt text](image-29.png)
+![Importing a Grafana dashboard](image-29.png)
 
 Obtain the dashboard code used in this assignment from the JSON file I have on my Advanced
 Cloud GitHub repo:
@@ -410,7 +410,7 @@ https://github.com/batcsg1/adv-cloud-computing/blob/production/modules/grafana/d
 
 Copy the JSON content into the box in the screenshot below labelled: `Import via dashboard JSON model`
 
-![alt text](image-30.png)
+![Importing a dashboard](image-30.png)
 
 Select the `Load` button.
 
@@ -418,26 +418,26 @@ Select the `Load` button.
 
 1. Select the 'Edit' Option
 
-![alt text](image-23.png)
+![Selecting 'Edit'](image-23.png)
 
 2. Select the `{ }` code editor
 
-![alt text](image-24.png)
+![Entering the JSON code editor](image-24.png)
 
 3. Set the value of the `name` property of every occurance of the `datasource` object to be set to the UID of the Prometheus instance.
 
 The UID can be found my Navigating to 'Connections' > 'Data sources', and at the end of the URL you will see a random string at the end. This will be your UID
 
-![alt text](image-25.png)
+![Glimpse of the JSON code for the dashboard](image-25.png)
 
 Select the `Apply changes` option at the bottom to save the changes to the dashboard
 
-![alt text](image-31.png)
+![Applying changes to the dashboard](image-31.png)
 
 
 #### Final dashboard
 
-![alt text](image-17.png)
+![The final resulting Grafana dashboard](image-17.png)
 
 ---
 
@@ -445,11 +445,11 @@ Select the `Apply changes` option at the bottom to save the changes to the dashb
 
 Turned off my `app` server on the Catalyst Cloud Portal
 
-![alt text](image-12.png)
+![Turned off the batcsg1-app server](image-12.png)
 
 Verified the `app` server appeared as down on my custom Grafana dashboard.
 
-![alt text](image-13.png)
+![App server appearing as down from my Grafana dashboard](image-13.png)
 
 ### Microsoft Teams
 
@@ -457,19 +457,19 @@ On Microsoft Teams I created my own Teams and added a dedicated channel specific
 
 Notification about the app machine being down:
 
-![alt text](image-16.png)
+![Notification about app machine suddenly going down ](image-16.png)
 
 Successfully verified I received a Prometheus based alert on my dedicated Teams channel.
 
-![alt text](image-14.png)
+![Receiving the Alert on Microsoft Teams](image-14.png)
 
 An alert I received about the `web` machines swap usage being high.
 
-![alt text](image-18.png)
+![A high swap usage alert for the web machine](image-18.png)
 
 Got a message saying the high swap usage alert had been resolved.
 
-![alt text](image-19.png)
+![The high swap alert being resolved](image-19.png)
 
 ---
 
@@ -477,4 +477,4 @@ Got a message saying the high swap usage alert had been resolved.
 
 Verified I could successfully access my Prometheus server, and all nodes are reachable.
 
-![alt text](image-9.png)
+![View of all the VMs running Prometheus node exporter](image-9.png)
